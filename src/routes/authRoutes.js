@@ -27,12 +27,11 @@ router.post("/register", async (req, res) => {
     }
 
     const profileImage = `https://api.dicebear.com/9.x/adventurer/svg?seed=${username}`;
-    const hashedPassword = await bcrypt.hash(password, 10); // Hash password
 
     const newUser = new User({
       username,
       email,
-      password: hashedPassword,
+      password,
       profileImage,
     });
 

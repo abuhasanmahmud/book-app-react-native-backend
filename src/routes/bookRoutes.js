@@ -10,15 +10,16 @@ const router = express.Router();
 router.post("/", protectRoute, async (req, res) => {
   try {
     const { title, caption, image, rating } = req.body;
+    // console.log("title", title, "image", image);
 
     if (!title || !caption || !image || !rating) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    //upload the image to cloudinary
-    // const uploadResponse = await cloudinary.uploader.upload(image);
-    // const imageUrl = uploadResponse.secure_url;
-    const imageUrl =
-      "https://res.cloudinary.com/dmadhbgty/image/upload/v1709301234/grostore/placeholder.png";
+    // upload the image to cloudinary
+    const uploadResponse = await cloudinary.uploader.upload(image);
+    const imageUrl = uploadResponse.secure_url;
+    // const imageUrl =
+    //   "https://res.cloudinary.com/dmadhbgty/image/upload/v1709301234/grostore/placeholder.png";
 
     const book = new Book({
       title,
@@ -36,7 +37,33 @@ router.post("/", protectRoute, async (req, res) => {
   }
 });
 
-// ✅ Get all books
+// ✅ Get all books with pagination
+router.get("/", protectRoute, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default limit to 10
+    const skip = (page - 1) * limit;
+
+    const [books, totalBooks] = await Promise.all([
+      Book.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Book.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      books,
+      pagination: {
+        total: totalBooks,
+        page,
+        pages: Math.ceil(totalBooks / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching books with pagination:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ✅ Get all books for user
 router.get("/user", protectRoute, async (req, res) => {
   try {
     const books = await Book.find({ user: req.user._id }).sort({
