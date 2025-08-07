@@ -22,7 +22,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 
 app.get("/", (req, res) => {
-  res.send("App works properly!");
+  res.send("App works properly-s!");
 });
 
 app.listen(PORT, () => {
